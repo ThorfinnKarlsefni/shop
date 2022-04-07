@@ -25,12 +25,16 @@
     <!-- 输出后端报错结束 -->
     <!-- inline-template 代表通过内联方式引入组件 -->
     <user-addresses-create-and-edit inline-template>
-    <form class="form-horizontal" role="form" action="{{ route('user_addresses.store') }}" method="post">
-        <!-- 引入 csrf token 字段 -->
-      {{ csrf_field() }}
+      @if($address->id)
+        <form class="form-horizontal" role="form" action="{{ route('user_addresses.update', ['user_address' => $address->id]) }}" method="post">
+          {{ method_field('PUT') }}
+      @else
+        <form class="form-horizontal" role="form" action="{{ route('user_addresses.store') }}" method="post">
+      @endif
+      {{ csrf_field() }}        <!-- 引入 csrf token 字段 -->
       <!-- 注意这里多了 @change -->
-        <select-district @change="onDistrictChanged" inline-template>
-          <div class="form-group row">
+      <select-district :init-value="{{ json_encode([old('province', $address->province), old('city', $address->city), old('district', $address->district)]) }}" @change="onDistrictChanged" inline-template>
+        <div class="form-group row">
             <label class="col-form-label col-sm-2 text-md-right">省市区</label>
             <div class="col-sm-3">
               <select class="form-control" v-model="provinceId">
