@@ -10,7 +10,7 @@ class UserAddress extends Model
 {
     use HasFactory;
 
-    private $fillalbe = [
+    protected $fillable = [
         'province',
         'city',
         'district',
@@ -27,7 +27,7 @@ class UserAddress extends Model
         return $this->belongsTo(User::class);
     }
 
-    public function getFullAddressAttributes(){
+    public function getFullAddressAttribute(){
         return "{$this->province}{$this->city}{$this->district}{$this->address}";
     }
 }
