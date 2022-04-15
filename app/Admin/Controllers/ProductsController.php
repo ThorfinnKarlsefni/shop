@@ -85,14 +85,22 @@ class ProductsController extends AdminController
     {
         $form = new Form(new Product());
 
-        $form->text('title', __('Title'));
-        $form->textarea('description', __('Description'));
-        $form->image('image', __('Image'));
-        $form->switch('on_sale', __('On sale'))->default(1);
-        $form->decimal('rating', __('Rating'))->default(5.00);
-        $form->number('sold_count', __('Sold count'));
-        $form->number('review_count', __('Review count'));
-        $form->decimal('price', __('Price'));
+        $form->text('title')->rules('requried');
+        $form->quill('description')->rules('requried');
+        $form->image('image')->rules('requried|image');
+        $form->radio('on_sale')->options(['1' => 'Y','0' => 'N'])->default(0);
+        $form->decimal('rating')->default(5.00);
+        //一对多关联模型
+        $form->hasMany('skus',function(Form\NestedForm $form){
+            $form->text('title')->rules('required');
+            $form->text('description')->rules('required');
+            $form->text('prcie')->rules('required|min:0.01|numeric');
+            $form->text('stock')->rules('required|min:0|integer');
+        });
+        //事件监听
+        $form->saving(function(Form $form){
+            $form->model()->price = collect($form->input('skus'))->where(Form::REMOVE_FLAG_NAME,0)->min('price') ?: 0;
+        });
 
         return $form;
     }
