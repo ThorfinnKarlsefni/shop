@@ -48,4 +48,11 @@ class User extends Authenticatable implements MustVerifyEmail
     public function addresses(){
         return $this->hasMany(UserAddress::class);
     }
+
+    public function favoriteProducts()
+    {
+        return $this->belongsToMany(Product::class,'users_favorite_products')
+            ->withTimestamps()
+            ->orderBy('users_favorite_products.created_at','desc');
+    }
 }
