@@ -9,12 +9,13 @@ use Illuminate\Http\Request;
 
 class CartController extends Controller
 {   
-    public function index(Request $request)
+public function index(Request $request)
     {
         $cartItems = $request->user()->cartItems()->with(['productSku.product'])->get();
-        // dd($cartItems);
+        $address = $request->user()->addresses()->orderBy('last_used_at','desc')->get();
         return view('cart.index',[
-            'cartItems' => $cartItems
+            'cartItems' =>  $cartItems,
+            'addresses'   =>  $address
         ]);
     }
 
