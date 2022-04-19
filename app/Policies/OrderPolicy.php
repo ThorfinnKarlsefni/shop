@@ -17,6 +17,6 @@ class OrderPolicy
      */
     public function own(User $user,Order $order)
     {
-        return $this->order->user_id === $user->id;
+        return $order->user_id === $user->id;
     }
 }
