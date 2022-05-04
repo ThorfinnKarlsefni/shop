@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Exceptions\InvalidRequestException;
 use App\Models\Order;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 
 class PaymentController extends Controller
@@ -25,13 +26,39 @@ class PaymentController extends Controller
 
     public function alipayReturn()
     {
-        $data = app('alipay')->verify();
-        dd($data);
+        try {
+            app('alipay')->verify();
+        } catch (\Exception $e) {
+            return view('pages.error',['msg' => '数据不正确']);
+        }
+
+        return view('pages.success',['mag' => '付款成功']);;
     }
 
     public function alipayNotify()
     {
         $data = app('alipay')->verify();
-        \Log::debug('Alipay notify',$data->all());
+
+        if(!in_array($data->trade_status,['TRADE_SUCCESS','TREDE_FINISHED'])){
+            return app('alipay')->success();
+        }
+
+        $order = Order::where('no',$data->out_trade_no)->first();
+
+        if(!$order){
+            return 'fail';
+        }
+
+        if($order->paid_at){
+            return app('alipay')->success();
+        }
+
+        $order->update([
+            'paid_at' => Carbon::now(),
+            'payment_method'    =>  'alipay',
+            'payment_no'    =>  $data->trade_no,
+        ]);
+
+        return app('alipay')->success();
     }
 }
