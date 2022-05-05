@@ -45,6 +45,18 @@
         <div class="line"><div class="line-label">收货地址：</div><div class="line-value">{{ join(' ', $order->address) }}</div></div>
         <div class="line"><div class="line-label">订单备注：</div><div class="line-value">{{ $order->remark ?: '-' }}</div></div>
         <div class="line"><div class="line-label">订单编号：</div><div class="line-value">{{ $order->no }}</div></div>
+        <!-- 输出物流状态 -->
+        <div class="line">
+          <div class="line-label">物流状态：</div>
+          <div class="line-value">{{ \App\Models\Order::$shipStatusMap[$order->ship_status] }}</div>
+        </div>
+        <!-- 如果有物流信息则展示 -->
+        @if($order->ship_data)
+        <div class="line">
+          <div class="line-label">物流信息：</div>
+          <div class="line-value">{{ $order->ship_data['express_company'] }} {{ $order->ship_data['express_no'] }}</div>
+        </div>
+        @endif
       </div>
       <div class="order-summary text-right">
         <div class="total-amount">
@@ -71,6 +83,16 @@
         @if(!$order->paid_at && !$order->closed)
         <div class="payment-buttons">
           <a class="btn btn-primary btn-sm" href="{{ route('payment.alipay', ['order' => $order->id]) }}">支付宝支付</a>
+        </div>
+        @endif
+        <!-- 如果订单的发货状态为已发货则展示确认收货按钮 -->
+        @if($order->ship_status === \App\Models\Order::SHIP_STATUS_DELIVERED)
+        <div class="receive-button">
+          <form method="post" action="{{ route('orders.received', [$order->id]) }}">
+            <!-- csrf token 不能忘 -->
+            {{ csrf_field() }}
+            <button type="submit" class="btn btn-sm btn-success">确认收货</button>
+          </form>
         </div>
         @endif
         <!-- 支付按钮结束 -->
