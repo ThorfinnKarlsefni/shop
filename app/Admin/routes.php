@@ -16,5 +16,6 @@ Route::group([
     $router->get('products','ProductsController@index');
     $router->get('products/create', 'ProductsController@create');
     $router->post('products', 'ProductsController@store');
-    $router->get('orders','OrderController@index')->name('order.index');
+    $router->get('orders','OrderController@index')->name('orders.index');
+    $router->get('orders/{order}','OrderController@show')->name('orders.show');
 });
