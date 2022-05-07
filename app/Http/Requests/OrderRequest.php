@@ -32,14 +32,14 @@ class OrderRequest extends FormRequest
                 Rule::exists('user_addresses','id')->where('user_id',$this->user()->id)
             ],
             'items' =>  ['required','array'],
-            'itmes.*.sku_id'    =>  [
+            'items.*.sku_id'    =>  [
                 'required',
                 function($attribute,$value,$fail){
                     if(!$sku = ProductSku::find($value)){
                         return $fail('商品不能存在');
                     }
 
-                    if($sku->product->on_sale){
+                    if(!$sku->product->on_sale){
                         return $fail('商品已下架');
                     }
 

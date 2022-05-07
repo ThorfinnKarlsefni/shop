@@ -10,7 +10,7 @@ class OrderItem extends Model
     use HasFactory;
 
     protected $fillable = [
-        'amount','price','rating','review'
+        'amount','price','rating','review','reviewed_at'
     ];
 
     protected $dates = ['reviewed_at'];

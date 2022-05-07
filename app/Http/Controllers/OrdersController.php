@@ -2,11 +2,14 @@
 
 namespace App\Http\Controllers;
 
+use App\Events\OrderReviewed;
 use App\Exceptions\InvalidRequestException;
 use App\Http\Requests\OrderRequest;
+use App\Http\Requests\SendReviewRequest;
 use App\Models\UserAddress;
 use App\Models\Order;
 use App\Services\OrderService;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 
 class OrdersController extends Controller
@@ -40,7 +43,7 @@ class OrdersController extends Controller
         return $orderService->store($user,$address,$request->input('remark'),$request->input('items'));
     }
 
-    public function recevied(Order $order,Request $request)
+    public function received(Order $order,Request $request)
     {
         $this->authorize('own',$order);
 
@@ -50,6 +53,49 @@ class OrdersController extends Controller
 
         $order->update(['ship_status' => Order::SHIP_STATUS_RECEIVED]);
 
+        return redirect()->back();
+    }
+
+    public function review(Order $order)
+    {
+        $this->authorize('own',$order);
+
+        if(!$order->paid_at){
+            throw new InvalidRequestException('该订单未支付,不可评价');
+        }
+
+        return view('orders.review',['order' => $order->load(['items.productSku','items.product'])]);
+    }
+
+    public function sendReview(Order $order,SendReviewRequest $request)
+    {
+        $this->authorize('own',$order);
+
+        if(!$order->paid_at){
+            return new InvalidRequestException('该订单未支付,不可评价');
+        }
+
+        if($order->reviewed){
+            return new InvalidRequestException('该订单已评价');
+        }
+
+        $reviews = $request->input('reviews');
+        // dd($reviews);
+        \DB::transaction(function() use($reviews,$order){
+            foreach($reviews as $reviews){
+
+                $orderItem = $order->items()->find($reviews['id']);
+
+                $orderItem->update([
+                    'rating'    =>  $reviews['rating'],
+                    'review'   =>  $reviews['review'],
+                    'reviewed_at'   =>  Carbon::now(),
+                ]);
+            }
+            $order->update(['reviewed' => true]);
+        });
+
+        event(new OrderReviewed($order));
         return redirect()->back();
     }
 }
