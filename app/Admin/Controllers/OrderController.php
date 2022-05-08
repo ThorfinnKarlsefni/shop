@@ -50,7 +50,7 @@ class OrderController extends AdminController
         $grid->disableCreateButton();
         $grid->actions(function ($actions){
             $actions->disableDelete();
-            $actions->diableEdit();
+            $actions->disableEdit();
         });
 
         $grid->tools(function($tools){
